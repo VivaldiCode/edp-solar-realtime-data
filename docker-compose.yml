@@ -10,5 +10,5 @@ services:
       - ./cache:/cache # Opcional
     network_mode: "bridge"
     ports:
-      - 8000:8000
+      - 3000:3000
     shm_size: '1gb'
