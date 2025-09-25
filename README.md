@@ -1,6 +1,11 @@
 # 🌞 EDP Solar IoT realtime data
 
-Uma API Node.js que conecta dispositivos **EDP Solar IoT** via AWS IoT, permitindo:
+⚠️ **Observações**
+
+Este projeto não é oficial da EDP.
+
+
+## Uma API Node.js que conecta dispositivos **EDP Solar IoT** via AWS IoT, permitindo:
 
 * Receber dados em **tempo real** via **WebSocket**.
 * Consultar o **último estado** de cada dispositivo via **HTTP GET**.
