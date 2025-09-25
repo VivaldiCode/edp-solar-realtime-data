@@ -81,6 +81,24 @@ export const getDevices = async (id_token, house_id) => {
     return response.data
 }
 
+
+export const getModules = async (id_token, house_id) => {
+
+    let config = {
+        method: 'get',
+        maxBodyLength: Infinity,
+        url: edpURL + '/equipment/houses/' + house_id + '/modules',
+        headers: {
+            'Accept': 'application/json',
+            'User-Agent': 'edpsolar-ios/1 CFNetwork/3860.100.1 Darwin/25.0.0',
+            'Authorization': 'Bearer ' + id_token
+        }
+    };
+
+    const response = await axios.request(config)
+    return response.data
+}
+
 export const getHouses = async (id_token) => {
 
     let config = {

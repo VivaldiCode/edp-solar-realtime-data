@@ -2,7 +2,7 @@ import express from "express";
 import { WebSocketServer } from "ws";
 import { SolarIoT } from './solarIoT.js';
 import { v4 as uuidv4 } from 'uuid';
-import { getDevices, getHouses, getUser, getWSCredentials, login } from "./edp-api-client/apis.js"
+import {getDevices, getHouses, getModules, getUser, getWSCredentials, login} from "./edp-api-client/apis.js"
 import path from "path";
 import { readJSON } from "./utils/readJSON.js";
 import { saveJSON } from "./utils/saveJSON.js";
@@ -13,12 +13,15 @@ const CREDENTIALS_PATH = path.resolve("./cache/credentials.json");
 const USER_PATH = path.resolve("./cache/userData.json");
 const HOUSES_PATH = path.resolve("./cache/houses.json");
 const DEVICES_PATH = path.resolve("./cache/devices.json");
+const MODULES_PATH = path.resolve("./cache/modules.json");
 const PORT = 3000;
 
 const IOTHost = 'axhipzdhdp7t3-ats.iot.eu-west-1.amazonaws.com'
-const username = process.env.USERNAME;
+const username = process.env.USERNAMED;
 const password = process.env.PASSWORD;
 const loginApi = process.env.LOGIN_API;
+const debug = process.env.DEBUG === 'true';
+
 
 // Armazena a última mensagem de cada deviceLocalId
 const lastDeviceState = {};
@@ -30,7 +33,7 @@ const wss = new WebSocketServer({ noServer: true });
 // HTTP GET endpoint
 app.get("/device/:deviceLocalId", (req, res) => {
     const id = req.params.deviceLocalId;
-    if (id === "ALL") {
+    if (id === "all") {
         return res.json(lastDeviceState);
     }
     res.json(lastDeviceState[id] || null);
@@ -93,14 +96,47 @@ export async function main(username, password, loginApi) {
                 devices.push({
                     isWifi: device.type === "wifi",
                     isRedyBox: device.type === "redybox",
-                    deviceLocalId: device.deviceLocalId
+                    ...device
                 });
             }
         }
-        await saveJSON(DEVICES_PATH, devices);
     } else {
         devices = devicesData;
     }
+
+    // 5️⃣ Modules
+    let modulesData = await readJSON(MODULES_PATH);
+    let modules = [];
+    if (!modulesData) {
+        for (const house of housesData.houses) {
+            const modulesRequest = await getModules(creds.id_token, house.houseId);
+            for (const module of modulesRequest.Modules) {
+                modules.push({
+                    ...module
+                });
+            }
+        }
+        modules.forEach(module => {
+            const device = devices.find(d => d.deviceLocalId === module.moduleLocalId.split(':')[0]);
+            if (device) {
+                //device.module = module
+                device.moduleLocalId = module.moduleLocalId
+                if(module.groups.includes('PRODUCTION_METER')){
+                    device.type = 'PRODUCTION_METER'
+                }else if(module.groups.includes('CONSUMPTION_METER')){
+                    device.type = 'CONSUMPTION_METER'
+                }else if(module.groups.includes('ENERGY_STORAGE')){
+                    device.type = 'BATTERY'
+                }
+            }
+        })
+        await saveJSON(DEVICES_PATH, devices);
+        await saveJSON(MODULES_PATH, modules);
+    } else {
+        modules = modulesData;
+    }
+
+
 
     // 6️⃣ Conexão IoT
     const iot = new SolarIoT({
@@ -140,13 +176,14 @@ export async function main(username, password, loginApi) {
     iot.on('data', ({topic, data}) => {
         if(data.data.length > 0) for (const entry of data.data) {
             const id = entry.localId.split(':')[0];
-            lastDeviceState[id] = entry.stateVariables;
-
+            let message = { localId: id, stateVariables: entry.stateVariables, device: devices.find(d => d.deviceLocalId === id) }
+            lastDeviceState[id] = message
+            if(debug) console.log(message, "clientes", wss.clients.size)
             // envia para os WS conectados
             wss.clients.forEach(ws => {
                 if (ws.readyState === ws.OPEN) {
                     if (ws.deviceFilter === "ALL" || ws.deviceFilter === id) {
-                        ws.send(JSON.stringify({ localId: id, stateVariables: entry.stateVariables }));
+                        ws.send(JSON.stringify(message));
                     }
                 }
             });
