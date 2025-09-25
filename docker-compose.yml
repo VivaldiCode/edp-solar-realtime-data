@@ -1,6 +1,6 @@
 version: "3.8"
 services:
-  edp-login:
+  edp-solar-realtime:
     build: .
     environment:
       - USERNAME=[SEU EMAIL]
