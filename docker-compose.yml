@@ -1,0 +1,14 @@
+version: "3.8"
+services:
+  edp-login:
+    build: .
+    environment:
+      - USERNAME=[SEU EMAIL]
+      - PASSWORD=[SUA SENHA]
+      - LOGIN_API=[URL DA API DE LOGIN]
+    volumes:
+      - ./cache:/cache # Opcional
+    network_mode: "bridge"
+    ports:
+      - 8000:8000
+    shm_size: '1gb'
