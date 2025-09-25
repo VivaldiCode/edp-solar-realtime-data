@@ -1,0 +1,25 @@
+{
+  "name": "edp-solar-realtime-data",
+  "version": "1.0.0",
+  "description": "",
+  "author": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "private": true,
+  "dependencies": {
+    "aws-iot-device-sdk": "^2.2.15",
+    "aws-iot-device-sdk-v2": "^1.23.0",
+    "aws4": "^1.13.2",
+    "axios": "^1.12.2",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "mqtt": "^5.14.1",
+    "node-fetch": "^3.3.2",
+    "open": "^10.2.0",
+    "uuid": "^13.0.0",
+    "ws": "^8.18.3"
+  }
+}
