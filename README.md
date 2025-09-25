@@ -84,8 +84,8 @@ GET http://localhost:3000/device/ALL
 
 ```json
 {
-  "688AB50C35FD": { "emeter:power_aminus": 2785 },
-  "688AB50F7A9A": { "emeter:power_aplus": 0, "emeter:power_aminus": 1636 }
+  "SEU deviceLocalId": { "emeter:power_aminus": 2785 },
+  "SEU deviceLocalId-2": { "emeter:power_aplus": 0, "emeter:power_aminus": 1636 }
 }
 ```
 
